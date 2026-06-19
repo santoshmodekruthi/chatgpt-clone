@@ -3,7 +3,7 @@ from groq import Groq
 from config.settings import Settings
 
 settings = Settings()
-client = Groq(api_key=settings.GROQ_API_KEY)
+client = Groq(api_key=settings.GROQ_API_KEY.strip())
 
 
 def get_answer(model_name, chat_history):
