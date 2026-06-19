@@ -1,0 +1,9 @@
+streamlit
+groq
+pymongo
+pydantic
+pydantic-settings
+python-dotenv
+markdown
+reportlab
+pygments

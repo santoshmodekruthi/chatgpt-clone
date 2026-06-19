@@ -1,0 +1,49 @@
+
+ssh -i "ec2-key-pair-2.pem" ubuntu@ec2-44-222-119-153.compute-1.amazonaws.com
+
+
+sudo apt install python3-venv
+
+
+sudo apt install -y nvidia-container-toolkit
+
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+
+docker exec -it ollama ollama pull llama3:latest
+docker exec -it ollama ollama pull gemma2:2b
+docker exec -it ollama ollama pull mistral:7b
+
+
+docker run -d --name mongodb -p 27017:27017 mongo
+
+Open ports: 11434, 27017,  8501 (EC2 -> Security group)
+
+
+(optional) Connect to MongoDB server from local MongoDB Compass
+
+git clone <url>
+
+password: ACCESS TOKEN
+
+cd <project_directory>
+
+python3 -m venv venv
+
+source venv/bin/activate
+
+pip install -r requirements.txt
+
+
+nano .env
+
+(paste the .env values)
+
+streamlit run main.py
+
+(run in nohup to run teh process in background)
+
+
+http://<ec2_public_ip>:8501/
