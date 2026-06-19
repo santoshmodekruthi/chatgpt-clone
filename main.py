@@ -339,6 +339,9 @@ with chat_container:
 
 # Chat input
 if prompt := st.chat_input("Ask AI something...", disabled=st.session_state.is_generating):
+    print("\n===== New Chat Input Received =====", file=sys.stderr)
+    print(f"User input: {prompt}", file=sys.stderr)
+    
     # Add user message
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     with chat_container:
@@ -347,20 +350,26 @@ if prompt := st.chat_input("Ask AI something...", disabled=st.session_state.is_g
     
     # Handle conversation
     if st.session_state.conversation_id is None:
+        print("  Creating new conversation...", file=sys.stderr)
         # Create new conversation
         conv_id = create_new_conversation(title="New Chat", role="user", content=prompt)
         st.session_state.conversation_id = conv_id
         st.session_state.conversation_title = "New Chat"
+        print(f"  ✅ New conversation created, ID: {conv_id}", file=sys.stderr)
         
         # Try to generate better title in background
         try:
+            print("  Generating conversation title...", file=sys.stderr)
             generated_title = get_chat_title(selected_model, prompt)
             if generated_title:
+                print(f"  Renaming conversation to: {generated_title.strip()}", file=sys.stderr)
                 rename_conversation(conv_id, generated_title.strip())
                 st.session_state.conversation_title = generated_title.strip()
         except Exception as e:
             print(f"[DEBUG] Title generation error: {e}", file=sys.stderr)
+            traceback.print_exc()
     else:
+        print(f"  Adding user message to existing conversation: {st.session_state.conversation_id}", file=sys.stderr)
         add_message(st.session_state.conversation_id, "user", prompt)
     
     # Generate assistant response
@@ -371,21 +380,26 @@ if prompt := st.chat_input("Ask AI something...", disabled=st.session_state.is_g
             
             full_response = ""
             try:
+                print("  Calling Groq for AI response...", file=sys.stderr)
                 full_response = get_answer(selected_model, st.session_state.chat_history)
+                print(f"  Received AI response, length: {len(full_response)}", file=sys.stderr)
                 message_placeholder.markdown(markdown.markdown(full_response, extensions=['fenced_code', 'tables']), unsafe_allow_html=True)
             except Exception as e:
                 error_msg = f"⚠️ Error: {str(e)}"
                 message_placeholder.error(error_msg)
                 full_response = error_msg
                 print(f"[DEBUG] Error in chat: {e}", file=sys.stderr)
-                traceback.print_exc(file=sys.stderr)
+                traceback.print_exc()
             
             st.session_state.is_generating = False
     
     # Add assistant message to history and DB
+    print("  Adding AI response to conversation...", file=sys.stderr)
     st.session_state.chat_history.append({"role": "assistant", "content": full_response})
     if st.session_state.conversation_id:
         add_message(st.session_state.conversation_id, "assistant", full_response)
+    
+    print("===== Chat Input Processing Complete =====", file=sys.stderr)
     
     # Rerun to update UI
     st.rerun()
